@@ -4,7 +4,7 @@ Mor <- read_excel("C:\\Users\\Morfometría.xlsx")
 
 # Análsis descriptivo-----------------------------------------------------
 
-# Densidad de la variable respuesta, FIGURA 1
+# Densidad de la variable respuesta, FIGURA 2
 par(mar=c(5,6,4,2))
 plot(density(Mor$Largo), xlim=c(0, 1500), lwd=3,
      main='', ylab='Densidad', ylim=c(0, 0.0015),
@@ -13,7 +13,7 @@ rug(Mor$Largo)
 summary(Mor$Largo)
 quantile(Mor$Largo, 0.9) # Quantil 90
 
-# Densidades comparativas de la variable respuesta, FIGURA 2
+# Densidades comparativas de la variable respuesta, FIGURA 3
 par(mar=c(5,6,4,2))
 rta1 <- split(x=Mor$Largo, f=Mor$Segmento)
 L11 <- density(rta1[["D"]])
@@ -81,7 +81,7 @@ H4<-histDist(Largo,data=Mor,family=BCTo,nbins=30,
              main="Box-Cox t",
              ylab="Densidad", xlab="Largo(µm)")
 
-#Histogramas mejorados FIGURA 3
+#Histogramas mejorados FIGURA 4
 par(mfrow=c(2, 2), mar=c(5,6,4,2))
 hist(Mor$Largo,
      main="Exponencial de potencia Box-Cox (BCPEo)",
@@ -121,7 +121,7 @@ curve(dBCTo(x, mu=exp(H4$mu.coef),
              nu=(H4$nu.coef),
              tau=exp(H4$tau.coef), log=FALSE), add=T, lwd=3)
 
-# Boxplots Dieta, Segmento, edad de destete, día de sacrficio, FIGURA 4
+# Boxplots Dieta, Segmento, edad de destete, día de sacrficio, FIGURA 5
 par(mfrow=c(2, 2), mar=c(5,6,4,2))
 #Boxplot Dieta
 boxplot(Largo~Dieta, data = Mor, xlab = "Dieta",
@@ -296,7 +296,7 @@ AIC(BCPEo_1, BCTo_1, GIG_1, BCCGo_1,
 
 # Comparando los 4 mejores modelos -------------------------------
 
-# Wp, FIGURA 5
+# Wp, FIGURA 6
 par(mfrow=c(2, 2), bg='white')
 wp(BCPEo_2)
 title("Exponencial de potencia Box-Cox (BCPEo)", cex=2.5)
@@ -336,7 +336,7 @@ h2Se<-exp(6.57-1.19*I1-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
 Y1<-1;
 h3Se<-exp(6.57-1.19*I-0.11*Y1+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
 
-#Grafico por segmentos FIGURA 6A
+#Grafico por segmentos FIGURA 7A
 par(mfrow=c(1,3), mar=c(8,6,4,2))
 par(mar=c(8,6,4,2))
 plot(h1Se~S, type="l", ylim=c(100, 1000), xlab='Día de sacrificio', ylab='Largo (µm)', 
@@ -356,7 +356,7 @@ h1B<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
 B1<-1;
 h2B<-exp(6.57-1.19*I-0.11*Y+0.32*B1+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
 
-#Grafico por Día de destete GRAFICA 6B
+#Grafico por Día de destete GRAFICA 7B
 plot(h1B~S, type="l", ylim=c(600, 1200), xlab='Día de sacrificio', ylab='Largo (µm)', 
      las=1, cex.axis= 1.2, cex.lab=1.7, col="red")
 lines(h2B~S, type="l", pch=22, lty=2, col="blue")
@@ -385,7 +385,7 @@ h4D<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D41-0.06*D5+0.004*S);
 D51<-1;
 h5D<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D51+0.004*S);
 
-#Grafico por Día de destete GRAFICA 6C
+#Grafico por Día de destete GRAFICA 7C
 plot(h1D~S, type="l", ylim=c(600, 900), xlab='Día de sacrificio', ylab='Largo (µm)',
      las=1, las=1, cex.axis= 1.5, cex.lab=1.7, col="red")
 lines(h2D~S, type="l", pch=22, lty=2, col="blue")
