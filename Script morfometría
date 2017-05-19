@@ -1,0 +1,400 @@
+#Lectura de los datos
+require(readxl)
+Mor <- read_excel("C:\\Users\\Morfometría.xlsx")
+
+# Análsis descriptivo-----------------------------------------------------
+
+# Densidad de la variable respuesta, FIGURA 1
+par(mar=c(5,6,4,2))
+plot(density(Mor$Largo), xlim=c(0, 1500), lwd=3,
+     main='', ylab='Densidad', ylim=c(0, 0.0015),
+     xlab='Largo (µm)', cex.lab=2, cex.axis=1.7)
+rug(Mor$Largo)
+summary(Mor$Largo)
+quantile(Mor$Largo, 0.9) # Quantil 90
+
+# Densidades comparativas de la variable respuesta, FIGURA 2
+par(mar=c(5,6,4,2))
+rta1 <- split(x=Mor$Largo, f=Mor$Segmento)
+L11 <- density(rta1[["D"]])
+L12 <- density(rta1[["Y"]])
+L13 <- density(rta1[["I"]])
+plot( L11,  xlim=c(0, 1500), lwd=3,
+      main='', ylab='Densidad', ylim=c(0, 0.0100),
+      xlab='Largo (µm)', cex.lab=2, cex.axis=1.7)
+lines(L12, lwd=3, lty=2)
+lines(L13, lwd=3, lty=3)
+legend(700, 0.01, c("Duodeno", "Yeyuno", "Íleon"), lty=1:3, bty="n")
+
+rta2 <- split(x=Mor$Largo, f=Mor$Dieta)
+L21 <- density(rta2[["D1"]])
+L22 <- density(rta2[["D2"]])
+L23 <- density(rta2[["D3"]])
+L24 <- density(rta2[["D4"]])
+L25 <- density(rta2[["D5"]])
+plot( L21,  xlim=c(0, 1600), lwd=3,
+      main='', ylab='Densidad', ylim=c(0, 0.0018),
+      xlab='Largo (µm)')
+lines(L22, lwd=3, col="blue")
+lines(L23, lwd=3, col="green")
+lines(L24, lwd=3, col="yellow")
+lines(L25, lwd=3, col="orange")
+
+rta3 <- split(x=Mor$Largo, f=Mor$Sacrificio)
+L31 <- density(rta3[["1"]])
+L32 <- density(rta3[["15"]])
+L33 <- density(rta3[["30"]])
+plot( L31,  xlim=c(0, 1600), lwd=3,
+      main='', ylab='Densidad', ylim=c(0, 0.0018),
+      xlab='Largo (µm)')
+lines(L32, lwd=3, col="blue")
+lines(L33, lwd=3, col="green")
+
+rta4 <- split(x=Mor$Largo, f=Mor$Bloque)
+L41 <- density(rta4[["B21"]])
+L42 <- density(rta4[["B28"]])
+plot( L41,  xlim=c(0, 1600), lwd=3,
+      main='', ylab='Densidad', ylim=c(0, 0.0018),
+      xlab='Largo (µm)')
+lines(L42, lwd=3, col="blue")
+
+
+#Aplicación de fitDist
+
+require(gamlss)
+
+Mod<-fitDist(y=Largo, data = Mor,type='realplus')
+Mod$fits
+
+# Histograma y mejores ajustes BCPEo, GG, BCCGo, BCTo
+par(mfrow=c(2,2))
+H1<-histDist(Largo,data=Mor,family=BCPEo,nbins=30,
+             main="Box-Cox Power Exponential",
+             ylab="Densidad", xlab="Largo(µm)", col="green2")
+H2<-histDist(Largo,data=Mor,family=GG,nbins=30,
+             main="Generalized Gamma",
+             ylab="Densidad", xlab="Largo(µm)")
+H3<-histDist(Largo,data=Mor,family=BCCGo,nbins=30,
+             main="Box-Cox Cole and Green",
+             ylab="Densidad", xlab="Largo(µm)")
+H4<-histDist(Largo,data=Mor,family=BCTo,nbins=30,
+             main="Box-Cox t",
+             ylab="Densidad", xlab="Largo(µm)")
+
+#Histogramas mejorados FIGURA 3
+par(mfrow=c(2, 2), mar=c(5,6,4,2))
+hist(Mor$Largo,
+     main="Exponencial de potencia Box-Cox (BCPEo)",
+     ylab='Densidad', freq=F, breaks=30, xlim=c(0, 1500),
+     xlab='Largo(µm)', ylim=c(0, 0.003), cex.axis=1.5,
+     cex.lab=1.5, cex.main=1.7)
+curve(dBCPEo(x, mu=exp(H1$mu.coef),
+             sigma=exp(H1$sigma.coef),
+             nu=(H1$nu.coef),
+             tau=exp(H1$tau.coef), log=FALSE), add=T, lwd=3)
+
+hist(Mor$Largo,
+     main="Gamma generalizada (GG)",
+     ylab='Densidad', freq=F, breaks=30, xlim=c(0, 1500),
+     xlab='Largo(µm', ylim=c(0, 0.003), cex.axis=1.5,
+     cex.lab=1.5, cex.main=1.7)
+curve(dGG(x, mu=exp(H2$mu.coef),
+          sigma=exp(H2$sigma.coef),
+          nu=(H2$nu.coef)), add=T, lwd=3)
+
+hist(Mor$Largo,
+     main="Box-Cox normal (BCCGo)",
+     ylab='Densidad', freq=F, breaks=30, xlim=c(0, 1500),
+     xlab='Largo(µm', ylim=c(0, 0.003), cex.axis=1.5,
+     cex.lab=1.5, cex.main=1.7)
+curve(dBCCGo(x, mu=exp(H3$mu.coef),
+             sigma=exp(H3$sigma.coef),
+             nu=(H3$nu.coef)), add=T, lwd=3)
+
+hist(Mor$Largo,
+     main="Box-Cox t (BCTo)",
+     ylab='Densidad', freq=F, breaks=30, xlim=c(0, 1500),
+     xlab='Largo(µm)', ylim=c(0, 0.003), cex.axis=1.5,
+     cex.lab=1.5, cex.main=1.7)
+curve(dBCTo(x, mu=exp(H4$mu.coef),
+             sigma=exp(H4$sigma.coef),
+             nu=(H4$nu.coef),
+             tau=exp(H4$tau.coef), log=FALSE), add=T, lwd=3)
+
+# Boxplots Dieta, Segmento, edad de destete, día de sacrficio, FIGURA 4
+par(mfrow=c(2, 2), mar=c(5,6,4,2))
+#Boxplot Dieta
+boxplot(Largo~Dieta, data = Mor, xlab = "Dieta",
+        ylab = "Largo (µm)", main="Boxplot Dieta", las=1,
+        cex.axis=1, cex.lab=1.5, cex.main=1.7)
+
+#Boxplot Edad de destete
+boxplot(Largo~Bloque, data = Mor, xlab = "Edad Destete (día)",
+        ylab = "Largo (µm)", main="Boxplot Edad destete", las=1,
+        cex.axis=1, cex.lab=1.5, cex.main=1.7)
+
+#Boxplot Sacrificio
+boxplot(Largo~Sacrificio, data = Mor, xlab = "Día Sacrificio",
+        ylab = "Largo (µm)", main="Boxplot Día Sacrificio", las=1,
+        cex.axis=1, cex.lab=1.5, cex.main=1.7)
+
+#Boxplot Segmento
+boxplot(Largo~Segmento, data = Mor, xlab = "Segmento",
+        ylab = "Largo (µm)", main="Boxplot Segmento intestinal", las=1,
+        cex.axis=1, cex.lab=1.5, cex.main=1.7)
+
+## Aplicación de Gamlss ##
+
+# Modelo horizonte
+Fin <- formula(~ Bloque + Sacrificio + Segmento + Dieta + (Sacrificio^2),
+               data=Mor)
+con <- gamlss.control(c.crit=0.001, n.cyc=500)
+
+## Ajuste del modelo inicial con la distribucion BCPEo
+BCPEo_0 <- gamlss(Largo ~ 1, data=Mor, family=BCPEo(),
+                 control=con)
+BCPEo_1 <- stepGAICAll.A(BCPEo_0, trace=F,
+                        scope=list(lower= ~ 1, upper=Fin),
+                        sigma.scope=list(lower= ~ 1, upper=Fin),
+                        nu.scope=list(lower= ~ 1, upper=Fin),
+                        tau.scope=list(lower= ~ 1, upper=Fin))
+BCPEo_1 <- refit(BCPEo_1)
+summary(BCPEo_1)
+
+## Ajuste del modelo inicial con la distribucion GG
+GG_0 <- gamlss(Largo ~ 1, data=Mor, family=GG(),
+              control = con)
+GG_1 <- stepGAICAll.A(GG_0, trace=F,
+                     scope=list(lower= ~ 1, upper=Fin),
+                     sigma.scope=list(lower= ~ 1, upper=Fin),
+                     nu.scope=list(lower= ~ 1, upper=Fin))
+GG_1 <- refit(GG_1)
+summary(GG_1)
+
+## Ajuste del modelo inicial con la distribucion BCCGo
+BCCGo_0 <- gamlss(Largo ~ 1, data=Mor, family=BCCGo(), 
+                 control=con)
+BCCGo_1 <- stepGAICAll.A(BCCGo_0, trace=F,
+                        scope=list(lower= ~ 1, upper=Fin),
+                        sigma.scope=list(lower= ~ 1, upper=Fin),
+                        nu.scope=list(lower= ~ 1, upper=Fin))
+BCCGo_1 <- refit(BCCGo_1)
+summary(BCCGo_1)
+
+## Ajuste del modelo inicial con la distribucion BCTo
+BCTo_0 <- gamlss(Largo ~ 1, data=Mor, family=BCTo(), 
+                control=con)
+BCTo_1 <- stepGAICAll.A(BCTo_0, trace=F,
+                       scope=list(lower= ~ 1, upper=Fin),
+                       sigma.scope=list(lower= ~ 1, upper=Fin),
+                       nu.scope=list(lower= ~ 1, upper=Fin),
+                       tau.scope=list(lower= ~ 1, upper=Fin))
+BCTo_1 <- refit(BCTo_1)
+summary(BCTo_1)
+
+## Ajuste del modelo inicial con la distribucion WEI3
+WEI3_0 <- gamlss(Largo ~ 1, data=Mor, family=WEI3())
+WEI3_1 <- stepGAICAll.A(WEI3_0, trace=F,
+                       scope=list(lower= ~ 1, upper=Fin),
+                       sigma.scope=list(lower= ~ 1, upper=Fin))
+WEI3_1 <- refit(WEI3_1)
+summary(WEI3_1)
+
+## Ajuste del modelo inicial con la distribucion GA
+GA_0 <- gamlss(Largo ~ 1, data=Mor, family=GA())
+GA_1 <- stepGAICAll.A(GA_0, trace=F,
+                     scope=list(lower= ~ 1, upper=Fin),
+                     sigma.scope=list(lower= ~ 1, upper=Fin))
+GA_1 <- refit(GA_1)
+summary(GA_1)
+
+## Ajuste del modelo inicial con la distribucion GIG
+GIG_0 <- gamlss(Largo ~ 1, data=Mor, family=GIG(),
+               control=con)
+GIG_1 <- stepGAICAll.A(GIG_0, trace=F,
+                      scope=list(lower= ~ 1, upper=Fin),
+                      sigma.scope=list(lower= ~ 1, upper=Fin))
+GIG_1 <- refit(GIG_1)
+summary(GIG_1)
+
+## Ajuste del modelo inicial con la distribucion IG
+IG_0 <- gamlss(Largo ~ 1, data=Mor, family=IG())
+IG_1 <- stepGAICAll.A(IG_0, trace=F,
+                     scope=list(lower= ~ 1, upper=Fin),
+                     sigma.scope=list(lower= ~ 1, upper=Fin))
+IG_1 <- refit(IG_1)
+summary(IG_1)
+
+## Ajuste del modelo inicial con la distribucion LOGNO
+LOGNO_0 <- gamlss(Largo ~ 1, data=Mor, family=LOGNO())
+LOGNO_1 <- stepGAICAll.A(LOGNO_0, trace=F,
+                        scope=list(lower= ~ 1, upper=Fin),
+                        sigma.scope=list(lower= ~ 1, upper=Fin))
+LOGNO_1 <- refit(LOGNO_1)
+summary(LOGNO_1)
+
+## Ajuste del modelo inicial con la distribucion IGAMMA
+IGAMMA_0 <- gamlss(Largo ~ 1, data=Mor, family=IGAMMA())
+IGAMMA_1 <- stepGAICAll.A(IGAMMA_0, trace=F,
+                         scope=list(lower= ~ 1, upper=Fin),
+                         sigma.scope=list(lower= ~ 1, upper=Fin))
+IGAMMA_1 <- refit(IGAMMA_1)
+summary(IGAMMA_1)
+
+## Ajuste del modelo inicial con la distribucion EXP
+EXP_0 <- gamlss(Largo ~ 1, data=Mor, family=EXP())
+EXP_1 <- stepGAICAll.A(EXP_0, trace=F,
+                      scope=list(lower= ~ 1, upper=Fin))
+EXP_1 <- refit(EXP_1)
+summary(EXP_1)
+
+## Ajuste del modelo inicial con la distribucion PARETO2
+PARETO2_0 <- gamlss(Largo ~ 1, data=Mor, family=PARETO2(),
+                   control=con)
+PARETO2_1 <- stepGAICAll.A(PARETO2_0, trace=F,
+                          scope=list(lower= ~ 1, upper=Fin),
+                          sigma.scope=list(lower= ~ 1, upper=Fin))
+PARETO2_1 <- refit(PARETO2_1)
+summary(PARETO2_1)
+
+# Solo los buenos modelos
+AIC(BCPEo_1, GG_1, BCCGo_1, BCTo_1, WEI3_1,
+    GA_1, GIG_1, IG_1, IGAMMA_1, EXP_1, PARETO2_1,
+    k=log(nrow(Mor)))
+
+
+# Los mejores modelos actualizados
+
+BCPEo_2 <- gamlss(Largo ~ Segmento + Bloque + Sacrificio + Dieta,
+                 sigma.fo= ~ Sacrificio + Segmento, 
+                 nu.fo = ~ Sacrificio,
+                 tau.fo = ~ Bloque,
+                 data=Mor, family=BCPEo())
+
+BCTo_2 <- gamlss(Largo ~ Segmento + Bloque + Sacrificio,
+                sigma.fo= ~ Sacrificio + Segmento, 
+                nu.fo = ~ Sacrificio,
+                tau.fo = ~ 1,
+                data=Mor, family=BCTo())
+
+GIG_2 <- gamlss(Largo ~ Segmento + Bloque + Dieta + Sacrificio,
+               sigma.fo= ~ Sacrificio, 
+               nu.fo = ~ Segmento + Sacrificio + Dieta,
+               data=Mor, family=GIG())
+
+BCCGo_2 <- gamlss(Largo ~ Segmento + Bloque + Dieta + Sacrificio,
+                 sigma.fo= ~ Sacrificio + Dieta + Bloque + Segmento, 
+                 nu.fo = ~ Sacrificio + Bloque + Dieta + Segmento,
+                 data=Mor, family=BCCGo())
+
+
+# Solo los actualizados
+AIC(BCPEo_1, BCTo_1, GIG_1, BCCGo_1, 
+    BCPEo_2, BCTo_2, GIG_2, BCCGo_2,
+    k=log(nrow(Mor)))
+
+
+# Comparando los 4 mejores modelos -------------------------------
+
+# Wp, FIGURA 5
+par(mfrow=c(2, 2), bg='white')
+wp(BCPEo_2)
+title("Exponencial de potencia Box-Cox (BCPEo)", cex=2.5)
+wp(BCTo_2)
+title("Box-Cox t (BCTo)", cex=2.5)
+wp(GIG_2)
+title("Inversa Gausiana Generalizada (GIG)", cex=2.5)
+wp(BCCGo_2)
+title("Box-Cox normal (BCCGo)", cex=2.5)
+# Calculando los SBC
+AIC(BCPEo_2, BCTo_2, GIG_2, BCCGo_2, k=log(nrow(Mor)))
+
+#  EL Mejor modelo---------------------------------------------------------
+wp(GIG_2)
+plot(GIG_2)
+summary(GIG_2)
+residuals(GIG_2)
+
+###Gráficos 2d para encontrar los mejores niveles en cada factor-----------#
+# Evalua el mejor segmento
+# Si es duodeno, dieta 1 y destetado a los 21 días
+I <- 0
+Y <- 0
+D2<- 0
+D3<- 0
+D4<- 0
+D5<- 0
+B <- 0
+S <-(1:0.01:30);
+h1Se<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S)
+
+# Si es Ileon, dieta 1 y destetado a los 21 días
+I1<-1;
+h2Se<-exp(6.57-1.19*I1-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
+
+# Si es yeyuno, dieta 1 y destetado a los 21 días
+Y1<-1;
+h3Se<-exp(6.57-1.19*I-0.11*Y1+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
+
+#Grafico por segmentos FIGURA 6A
+par(mfrow=c(1,3), mar=c(8,6,4,2))
+par(mar=c(8,6,4,2))
+plot(h1Se~S, type="l", ylim=c(100, 1000), xlab='Día de sacrificio', ylab='Largo (µm)', 
+     las=1, cex.axis= 1.5, cex.lab=1.7, col="red")
+lines(h2Se~S, type="l", pch=22, lty=2)
+lines(h3Se~S, type="l", pch=22, lty=3, col="blue")
+title(main="") 
+legend(20,700, c("Duodeno", "Íleon", "Yeyuno"), lty=1:3, cex=1, bty="n",
+       col= c("red", "black", "blue"))
+mtext("(A)", side=1, line=6, font=1, cex = 1.7)
+#----------------------------------------------------------------------------
+
+# Si es Duodeno, dieta 1 y destetado a los 21 días
+h1B<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
+
+# Si es Duodeno, dieta 1 y destetado a los 28 días
+B1<-1;
+h2B<-exp(6.57-1.19*I-0.11*Y+0.32*B1+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
+
+#Grafico por Día de destete GRAFICA 6B
+plot(h1B~S, type="l", ylim=c(600, 1200), xlab='Día de sacrificio', ylab='Largo (µm)', 
+     las=1, cex.axis= 1.2, cex.lab=1.7, col="red")
+lines(h2B~S, type="l", pch=22, lty=2, col="blue")
+title(main="")
+legend(18,1000, c("21 días", "28 días"), lty=1:2, cex=1, bty="n",
+       pt.cex=20, col = c("red", "blue"))
+mtext("(B)", side=1, line=6, font=1, cex = 1.7)
+#--------------------------------------------------------------------------
+
+# Si es Duodeno, dieta 1 y destetado a los 21 días
+h1D<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D5+0.004*S);
+
+# Si es Duodeno, dieta 2 y destetado a los 21 días
+D21<-1;
+h2D<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D21-0.003*D3-0.02*D4-0.06*D5+0.004*S);
+
+# Si es Duodeno, dieta 3 y destetado a los 21 días
+D31<-1;
+h3D<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D31-0.02*D4-0.06*D5+0.004*S);
+
+# Si es Duodeno, dieta 4 y destetado a los 21 días
+D41<-1;
+h4D<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D41-0.06*D5+0.004*S);
+
+# Si es Duodeno, dieta 2 y destetado a los 21 días
+D51<-1;
+h5D<-exp(6.57-1.19*I-0.11*Y+0.32*B+0.009*D2-0.003*D3-0.02*D4-0.06*D51+0.004*S);
+
+#Grafico por Día de destete GRAFICA 6C
+plot(h1D~S, type="l", ylim=c(600, 900), xlab='Día de sacrificio', ylab='Largo (µm)',
+     las=1, las=1, cex.axis= 1.5, cex.lab=1.7, col="red")
+lines(h2D~S, type="l", pch=22, lty=2, col="blue")
+lines(h3D~S, type="l", pch=22, lty=3)
+lines(h4D~S, type="l", pch=22, lty=4, col="darkolivegreen")
+lines(h5D~S, type="l", pch=22, lty=5, col="darkorange")
+title(main="")
+legend(0,900, c("Dieta 1", "Dieta 2", "Dieta 3", "Dieta 4", "Dieta 5"), lty=1:5, cex=1,
+       bty="n", col=c("red", "blue","black", "darkolivegreen", "darkorange"))
+mtext("(C)", side=1, line=6, font=1, cex = 1.7)
+
+#-----------------------------------FIN------------------------------
